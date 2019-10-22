@@ -3,10 +3,14 @@ const bodyParser = require('body-parser');
 const grapQLHTTP = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const cookie = require('cookie');
 
 
 const port = process.env.PORT || 8080;
 const app = express();
+const User = require('./models/user');
+const JWT_SECRET = "my-very-secreeet-akalabic-secret"
 
 global.logger = require('tracer').colorConsole({ // .console({
     format: '{{timestamp}} [{{title}}] {{message}} ({{file}}:{{line}})',
@@ -15,19 +19,102 @@ global.logger = require('tracer').colorConsole({ // .console({
 
 app.use(bodyParser.json());
 
-app.use('/graphql', grapQLHTTP({
+app.use('/graphql', grapQLHTTP((req, res) => ({
     schema: buildSchema(`
         type Query {
-            helloGraphQL: String
+            helloGraphQL: String!
+        }
+        type Mutation {
+            register(username: String!, password: String!): Boolean!
+            login(username: String!, password: String!): Boolean!
         }
     `),
     rootValue: {
-        helloGraphQL: () => {
-            return 'Hello GraphQL!'
-        }
+        helloGraphQL: async(...args) => {
+            let {currentUser} = await args[1]();
+            logger.debug(currentUser);
+            return `Hello ${currentUser ? currentUser.email : 'GraphQL'}!`
+        },
+        register: async (args, context) => {
+            context = await context();
+            const user = new User({
+              email: args.username,
+              password: args.password
+            });
+            var saved = await user.save();
+      
+            const token = jwt.sign(
+              {
+                userId: saved.id
+              },
+              JWT_SECRET,
+              { expiresIn: "7d" }
+            );
+      
+            context.res.cookie("access_token", token, {
+              httpOnly: true,
+              maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+            });
+      
+            return true;
+          },
+          login: async (args, context) => {
+            context = await context();
+            const user = await new Promise((resolve) => {
+                User.findOne({
+                    email: args.username,
+                    password: args.password
+                },(err, user) => {
+                    if(err) {
+                        logger.error(err);
+                    }
+                    resolve(user);
+                });
+            })
+            if (user) {
+                logger.debug(user.id);
+                const token = jwt.sign(
+                    {
+                      userId: user.id
+                    },
+                    JWT_SECRET,
+                    { expiresIn: "7d" }
+                  );
+            
+                  context.res.cookie("access_token", token, {
+                    httpOnly: true,
+                    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+                  });
+            
+                  return true;
+            } else {
+                return false
+            }
+          }
     },
+    context: async () => {
+        let currentUser = null;
+        var cookies = cookie.parse(req.headers.cookie || '');
+
+        if (cookies.access_token) {
+            let {userId} = jwt.verify(cookies.access_token, JWT_SECRET);
+            logger.debug(userId);
+            currentUser = await new Promise((resolve) => {
+                User.findById(userId,(err, user) => {
+                    if(err) {
+                        logger.error(err);
+                    }
+                    resolve(user);
+                });
+            })
+        }
+
+        return {
+            currentUser, res
+        };
+   },
     graphiql: true
-}))
+})))
 
 mongoose.connect('mongodb+srv://web_tehnologije:web_tehnologije@golux-9u8hn.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true})
 .then(() => {
