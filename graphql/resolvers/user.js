@@ -1,14 +1,15 @@
 const User = require('../../models/user')
 const {sign} = require('jsonwebtoken')
 const {promisfy_mongoose} = require('../helper')
+const {errorName} = require('../../error-handling');
 
 module.exports = {
-    register: async ({user}, context) => {
+    register: async ({user}, {res}) => {
         try {
-          const {res} = await context()
           const new_user = new User({
             email: user.email,
-            password: user.password
+            password: user.password,
+            role: 'user'
           })
           const saved = await new_user.save()
           
@@ -32,9 +33,8 @@ module.exports = {
             return false
         }
       },
-      login: async ({user}, context) => {
+      login: async ({user}, {res}) => {
         try {
-          const {res} = await context()
           const found_user = await promisfy_mongoose(User.findOne({
               email: user.email,
               password: user.password
@@ -60,6 +60,107 @@ module.exports = {
         } catch (err) {
           logger.error(err);
           return false
+        }
+      },
+      updatePassword: async({password}, {me}) => {
+        const currentUser = await me()
+        if (currentUser) {
+          try {
+            currentUser.password = password
+            await currentUser.save()
+            return true
+          } catch (err) {
+            logger.error(err)
+            return false
+          }
+        } else {
+          throw new Error(errorName.UNAUTHORIZED)
+        }
+      },
+      getAll: async(_, {me}) => {
+        const currentUser = await me()
+        if (currentUser && currentUser.role == 'admin') {
+          try {
+            const users = await User.find()
+            return users
+          } catch (err) {
+            logger.error(err)
+            return []
+          }
+        } else {
+          throw new Error(errorName.UNAUTHORIZED)
+        }
+      },
+      makeModerator: async({email}, {me}) => {
+        const currentUser = await me()
+        if (currentUser && currentUser.role == 'admin') {
+          try {
+            const user = await User.findOne({
+              email: email
+            })
+            user.role='moderator';
+            await user.save();
+            return true
+          } catch (err) {
+            logger.error(err)
+            return false
+          }
+        } else {
+          throw new Error(errorName.UNAUTHORIZED)
+        }
+      },
+      makeAdmin: async({email}, {me}) => {
+        const currentUser = await me()
+        if (currentUser && currentUser.role == 'admin') {
+          try {
+            const user = await User.findOne({
+              email: email
+            })
+            user.role='admin';
+            await user.save();
+            return true
+          } catch (err) {
+            logger.error(err)
+            return false
+          }
+        } else {
+          throw new Error(errorName.UNAUTHORIZED)
+        }
+      },
+      remove: async({email}, {me}) => {
+        const currentUser = await me()
+        if (currentUser && currentUser.role == 'admin') {
+          try {
+            await User.deleteOne({
+              email: email
+            })
+            return true
+          } catch (err) {
+            logger.error(err)
+            return false
+          }
+        } else {
+          throw new Error(errorName.UNAUTHORIZED)
+        }
+      },
+      add: async ({email, password, role}, {res}) => {
+        const currentUser = await me()
+        if (currentUser && currentUser.role == 'admin') {
+          try {
+            const new_user = new User({
+              email: email,
+              password: password,
+              role: role
+            })
+            await new_user.save()
+            
+            return true
+          } catch (err) {
+              logger.error(err);
+              return false
+          }
+        } else {
+          throw new Error(errorName.UNAUTHORIZED)
         }
       }
 }

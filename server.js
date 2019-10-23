@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const port = process.env.PORT || 8080;
 const app = express();
 const { schema, context, resolvers } = require('./graphql');
+const {getError} = require('./error-handling');
 
 global.logger = require('tracer').colorConsole({ // .console({
     format: '{{timestamp}} [{{title}}] {{message}} ({{file}}:{{line}})',
@@ -20,6 +21,10 @@ app.use('/graphql', grapQLHTTP((req, res) => ({
     schema: schema,
     rootValue: resolvers,
     context: context(req, res),
+    customFormatErrorFn: (err) => {
+        const error = getError(err.message) || err
+        return error
+    },
     graphiql: true
 })))
 

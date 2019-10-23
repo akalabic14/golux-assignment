@@ -3,6 +3,7 @@ const {Schema, model} = require('mongoose');
 const shema = new Schema({
     email: String,
     password: String,
+    role: String,
     posts: [{ type: Schema.Types.ObjectId, ref: 'Post' }]
 })
 
