@@ -6,9 +6,15 @@ module.exports = buildSchema(`
         password: String!
     }
 
-    type UserOutput {
+    type SimpleUser {
         email: String!,
         role: String!
+    }
+
+    type UserOutput {
+        email: String!,
+        role: String!,
+        posts: [SimplePost!]!
     }
 
     type UserMutations {
@@ -25,11 +31,43 @@ module.exports = buildSchema(`
         getAll: [UserOutput!]!
     }
 
+    input PostInput {
+        title: String!,
+        text: String!
+    }
+
+    type PostOutput {
+        title: String!,
+        text: String!,
+        author: UserOutput!
+    }
+    
+    type SimplePost {
+        id: String!,
+        title: String!,
+        text: String!,
+        author: UserOutput
+    }
+
+    type PostMutations {
+        makePost(post: PostInput): SimplePost!
+        remove(id: String!): Boolean!
+        addPost(title: String!, text: String!, author: String!): SimplePost!
+        editPost(id: String!, new_title: String, new_text: String): SimplePost!
+    }
+
+    type PostQueries {
+        getAll: [PostOutput!]!
+        getMine: [SimplePost!]!
+    }
+
     type Query {
         helloGraphQL: String!,
-        user: UserQueries
+        user: UserQueries,
+        post: PostQueries
     }
     type Mutation {
-        user: UserMutations
+        user: UserMutations,
+        post: PostMutations
     }
 `)

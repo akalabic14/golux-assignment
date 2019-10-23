@@ -81,7 +81,7 @@ module.exports = {
         const currentUser = await me()
         if (currentUser && currentUser.role == 'admin') {
           try {
-            const users = await User.find()
+            const users = await promisfy_mongoose(User.find().populate('posts'))
             return users
           } catch (err) {
             logger.error(err)
@@ -95,9 +95,9 @@ module.exports = {
         const currentUser = await me()
         if (currentUser && currentUser.role == 'admin') {
           try {
-            const user = await User.findOne({
+            const user = await promisfy_mongoose(User.findOne({
               email: email
-            })
+            }).populate('posts'))
             user.role='moderator';
             await user.save();
             return true
@@ -113,9 +113,9 @@ module.exports = {
         const currentUser = await me()
         if (currentUser && currentUser.role == 'admin') {
           try {
-            const user = await User.findOne({
+            const user = await promisfy_mongoose(User.findOne({
               email: email
-            })
+            }).populate('posts'))
             user.role='admin';
             await user.save();
             return true
@@ -131,9 +131,9 @@ module.exports = {
         const currentUser = await me()
         if (currentUser && currentUser.role == 'admin') {
           try {
-            await User.deleteOne({
+            await promisfy_mongoose(User.deleteOne({
               email: email
-            })
+            }))
             return true
           } catch (err) {
             logger.error(err)
