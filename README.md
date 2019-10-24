@@ -37,4 +37,4 @@ Ulogovan korisnik sa rolom moderator:
 
 Ulogovan korisnik sa rolom admin:
 
-* Može da pristupi svim query-ima, da briše, mjenja, i dodaje user-e i poste.
+* Može da pristupi svim query-ima, da briše, mjenja, i dodaje user-e i postove.
