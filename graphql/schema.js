@@ -1,59 +1,74 @@
 const { buildSchema } = require('graphql');
 
 module.exports = buildSchema(`
-    input UserInput {
+    input SimpleUserInput {
         email: String!,
         password: String!
     }
 
+    input UserInput {
+        email: String!,
+        password: String!,
+        role: String!
+    }
+
     type SimpleUser {
+        id: String,
         email: String!,
         role: String!
     }
 
     type UserOutput {
+        id: String!,
         email: String!,
         role: String!,
         posts: [SimplePost!]!
     }
 
     type UserMutations {
-        register(user: UserInput): Boolean!
+        logout: Boolean!
+        register(user: SimpleUserInput): Boolean!
         login(user: UserInput): Boolean!
         updatePassword(password: String!): Boolean!
         makeModerator(email: String!): Boolean!
         makeAdmin(email: String!): Boolean!
         remove(email: String!): Boolean!
-        add(email: String!, password: String!, role: String!): Boolean!
+        add(user: UserInput): Boolean!
     }
 
     type UserQueries {
         getAll: [UserOutput!]!
     }
 
-    input PostInput {
+    input SimplePostInput {
         title: String!,
         text: String!
     }
 
-    type PostOutput {
+    input PostInput {
         title: String!,
         text: String!,
-        author: UserOutput!
+        author: String!
     }
-    
+
+    type PostOutput {
+        id: String,
+        title: String!,
+        text: String!,
+        author: SimpleUser!
+    }
+
     type SimplePost {
         id: String!,
         title: String!,
-        text: String!,
-        author: UserOutput
+        text: String!
     }
 
     type PostMutations {
-        makePost(post: PostInput): SimplePost!
+        makePost(post: SimplePostInput): SimplePost!
         remove(id: String!): Boolean!
-        addPost(title: String!, text: String!, author: String!): SimplePost!
-        editPost(id: String!, new_title: String, new_text: String): SimplePost!
+        addPost(post: PostInput!): PostOutput!
+        editPost(id: String!, new_title: String, new_text: String): PostOutput!
     }
 
     type PostQueries {

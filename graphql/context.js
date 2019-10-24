@@ -6,6 +6,11 @@ const {promisfy_mongoose} = require('./helper')
 
 module.exports = (req, res) => {
     return {
+/**
+ * @function me
+ * @returns {Object<SimpleUser>}
+ * @description Reads access_token from user, then gets userId from jwt token, and returns user with that id
+ */
         me: async () => {
             let currentUser = null;
             var cookies = cookie.parse(req.headers.cookie || '');
@@ -21,6 +26,10 @@ module.exports = (req, res) => {
 
             return currentUser
         },
+/**
+ * @returns {Object<res>}
+ * @description Returns exporess response object
+ */
         res: res
     }
 }
