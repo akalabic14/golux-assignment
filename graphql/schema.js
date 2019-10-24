@@ -71,6 +71,12 @@ module.exports = buildSchema(`
         editPost(id: String!, new_title: String, new_text: String): PostOutput!
     }
 
+    input PostSort {
+        title: String,
+        created: String,
+        updated: String
+    }
+
     type PostPagination {
         posts: [PostOutput!]!,
         totalDocs: Int!,
@@ -82,7 +88,7 @@ module.exports = buildSchema(`
     }
 
     type PostQueries {
-        getAll(page: Int, limit: Int, search: String): PostPagination,
+        getAll(sort: PostSort, page: Int, limit: Int, search: String): PostPagination,
         getMine: [SimplePost!]!
     }
 

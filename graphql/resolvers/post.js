@@ -141,9 +141,16 @@ module.exports = {
  * @returns {Array<PostOutput>}
  * @description Return all posts
  */
-    getAll: async ({page, limit, search}, {me}) => {
+    getAll: async ({sort, page, limit, search}, {me}) => {
         const currentUser = await me();
         if (currentUser) {
+            if (sort) {
+                for (let key in sort) {
+                    if (sort[key] != 'asc' && sort[key] != 'desc') {
+                        throw new Error(errorName.INVALID_SORTING)
+                    }
+                }
+            }
             try {
                 page = page || 1
                 limit = limit || 10
@@ -155,7 +162,7 @@ module.exports = {
                         }
                     }
                 }
-                var all_posts = await Post.paginate(post_search, {page, limit, populate:'author'})
+                var all_posts = await Post.paginate(post_search, {page, limit, populate:'author', sort})
                 let result = {
                     posts: all_posts.docs.map(post => {
                         switch(currentUser.role) {

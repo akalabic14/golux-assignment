@@ -1,5 +1,7 @@
 const errorName = {
-    UNAUTHORIZED: 'UNAUTHORIZED'
+	UNAUTHORIZED: 'UNAUTHORIZED',
+	INVALID_ROLE: 'INVALID_ROLE',
+	INVALID_SORTING: 'INVALID_SORTING'
 }
 const errorType = {
 	UNAUTHORIZED: {
@@ -8,6 +10,10 @@ const errorType = {
 	},
 	INVALID_ROLE: {
 		message: 'Invalid input for user role. Supported roles are user, moderator and admin',
+		statusCode:422
+	},
+	INVALID_SORTING: {
+		message: 'Invalid input for sorting value. Supported values are "asc" and "desc"',
 		statusCode:422
 	}
 }

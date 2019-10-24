@@ -5,7 +5,7 @@ const schema = new Schema({
     title: String,
     text: String,
     author: { type: Schema.Types.ObjectId, ref: 'User' }
-})
+}, { timestamps: { createdAt: 'created', updatedAt: 'updated' }})
 
 schema.plugin(mongoosePaginate)
 
