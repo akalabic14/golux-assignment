@@ -141,36 +141,54 @@ module.exports = {
  * @returns {Array<PostOutput>}
  * @description Return all posts
  */
-    getAll: async (_, {me}) => {
+    getAll: async ({page, limit, search}, {me}) => {
         const currentUser = await me();
         if (currentUser) {
             try {
-                var all_posts = await promisfy_mongoose(Post.find().populate('author'))
-                let result = all_posts.map(post => {
-                    switch(currentUser.role) {
-                        case 'user':
-                            return {
-                                title: post.title,
-                                text: post.text,
-                                author: Object.assign({}, {
-                                    email: post.author.email,
-                                    role: post.author.role
-                                })
-                            }
-                        case 'moderator':
-                            return {
-                                id: post.author._id.equals(currentUser._id) ? post.id : null,
-                                title: post.title,
-                                text: post.text,
-                                author: Object.assign({}, {
-                                    email: post.author.email,
-                                    role: post.author.role
-                                })
-                            }
-                        case 'admin':
-                            return post    
+                page = page || 1
+                limit = limit || 10
+                let post_search = {}
+                if (search) {
+                    post_search = {
+                        $text: {
+                            $search: search
+                        }
                     }
-                })
+                }
+                var all_posts = await Post.paginate(post_search, {page, limit, populate:'author'})
+                let result = {
+                    posts: all_posts.docs.map(post => {
+                        switch(currentUser.role) {
+                            case 'user':
+                                return {
+                                    title: post.title,
+                                    text: post.text,
+                                    author: Object.assign({}, {
+                                        email: post.author.email,
+                                        role: post.author.role
+                                    })
+                                }
+                            case 'moderator':
+                                return {
+                                    id: post.author._id.equals(currentUser._id) ? post.id : null,
+                                    title: post.title,
+                                    text: post.text,
+                                    author: Object.assign({}, {
+                                        email: post.author.email,
+                                        role: post.author.role
+                                    })
+                                }
+                            case 'admin':
+                                return post    
+                        }
+                    }),
+                    totalDocs: all_posts.totalDocs,
+                    limit: all_posts.limit,
+                    hasPrevPage: all_posts.hasPrevPage,
+                    hasNextPage: all_posts.hasNextPage,
+                    page: all_posts.page,
+                    totalPages: all_posts.totalPages
+                }
                 return result
             } catch (err) {
                 logger.error(err)

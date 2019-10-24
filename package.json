@@ -19,16 +19,21 @@
   },
   "homepage": "https://github.com/akalabic14/golux-assignment#readme",
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "cookie": "^0.4.0",
-    "express": "^4.17.1",
-    "express-graphql": "^0.9.0",
-    "graphql": "^14.5.8",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.7.6",
-    "tracer": "^1.0.1"
+    "body-parser": "1.19.0",
+    "cookie": "0.4.0",
+    "express": "4.17.1",
+    "express-graphql": "0.9.0",
+    "graphql": "14.5.8",
+    "jsonwebtoken": "8.5.1",
+    "mongoose": "5.7.6",
+    "mongoose-paginate-v2": "1.3.3",
+    "tracer": "1.0.1"
   },
   "devDependencies": {
-    "nodemon": "^1.19.4"
+    "nodemon": "1.19.4"
+  },
+  "engines": {
+    "node": "10.6.0",
+    "npm": "6.1.0"
   }
 }

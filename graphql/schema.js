@@ -71,8 +71,18 @@ module.exports = buildSchema(`
         editPost(id: String!, new_title: String, new_text: String): PostOutput!
     }
 
+    type PostPagination {
+        posts: [PostOutput!]!,
+        totalDocs: Int!,
+        limit: Int!,
+        hasPrevPage: Boolean!,
+        hasNextPage: Boolean!,
+        page: Int!,
+        totalPages: Int!
+    }
+
     type PostQueries {
-        getAll: [PostOutput!]!
+        getAll(page: Int, limit: Int, search: String): PostPagination,
         getMine: [SimplePost!]!
     }
 

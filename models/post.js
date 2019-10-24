@@ -1,11 +1,16 @@
 const {Schema, model} = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
-const shema = new Schema({
+const schema = new Schema({
     title: String,
     text: String,
     author: { type: Schema.Types.ObjectId, ref: 'User' }
 })
 
-const Post = model('Post', shema)
+schema.plugin(mongoosePaginate)
+
+schema.index({'$**': 'text'});
+
+const Post = model('Post', schema)
 
 module.exports = Post

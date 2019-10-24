@@ -13,6 +13,7 @@ npm start
 ```
 
 GraphQL api se može testirati otvarajući localhost:8080/graphql gdje se nalazi graphiql editor.
+U bazu je ubačen admin user { email: "admin", password: "admin" } za potrebe testiranja.
 
 ## Permisije:
 Ne ulogovan korisnik:
