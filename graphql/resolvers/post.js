@@ -1,4 +1,5 @@
 const Post = require('../../models/post')
+const User = require('../../models/user')
 const {promisfy_mongoose} = require('../helper')
 const {errorName} = require('../../error-handling')
 
@@ -39,7 +40,8 @@ module.exports = {
         if (currentUser && currentUser.role == 'admin') {
             try {
                 var post = new Post({title, text, author})
-                await post.save().populate('author')
+                await post.save()
+                post.author = await User.findById(author)
                 return post
             } catch (err) {
                 logger.error(err)
@@ -54,16 +56,20 @@ module.exports = {
  * @returns {Object<PostOutput>}
  * @description Updates title and text on post with passed id for authors of the post and admin users.
  */
-    editPost: async ({id, new_title, new_text}) => {
+    editPost: async ({id, new_title, new_text}, {me}) => {
         const currentUser = await me();
         if (currentUser && currentUser.role != 'user') {
             try {
                 var post = await promisfy_mongoose(Post.findById(id).populate('author'))
                 if (post) {
                     if (currentUser.role == 'admin' || post.author._id.equals(currentUser._id)) {
-                        post.title = new_title
-                        post.text = new_text
-                        await post.save().populate('author')
+                        if (new_title) {
+                            post.title = new_title
+                        }
+                        if (new_text) {
+                            post.text = new_text
+                        }
+                        await post.save()
                         return post
                     } else {
                         throw new Error(errorName.UNAUTHORIZED)
@@ -141,17 +147,28 @@ module.exports = {
             try {
                 var all_posts = await promisfy_mongoose(Post.find().populate('author'))
                 let result = all_posts.map(post => {
-                    if (currentUser.role == 'user') {
-                        return {
-                            title: post.title,
-                            text: post.text,
-                            author: Object.assign({}, {
-                                email: post.author.email,
-                                role: post.author.role
-                            })
-                        }
-                    } else {
-                        return post
+                    switch(currentUser.role) {
+                        case 'user':
+                            return {
+                                title: post.title,
+                                text: post.text,
+                                author: Object.assign({}, {
+                                    email: post.author.email,
+                                    role: post.author.role
+                                })
+                            }
+                        case 'moderator':
+                            return {
+                                id: post.author._id.equals(currentUser._id) ? post.id : null,
+                                title: post.title,
+                                text: post.text,
+                                author: Object.assign({}, {
+                                    email: post.author.email,
+                                    role: post.author.role
+                                })
+                            }
+                        case 'admin':
+                            return post    
                     }
                 })
                 return result

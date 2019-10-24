@@ -3,7 +3,7 @@ const errorName = {
 }
 const errorType = {
 	UNAUTHORIZED: {
-		message: 'Authentication is needed to get requested response. Use login mutation to log in.',
+		message: 'Unauthorized request. You are not logged in, or your role does not have required permission.',
 		statusCode:401
 	},
 	INVALID_ROLE: {

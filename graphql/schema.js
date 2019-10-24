@@ -28,7 +28,7 @@ module.exports = buildSchema(`
     type UserMutations {
         logout: Boolean!
         register(user: SimpleUserInput): Boolean!
-        login(user: UserInput): Boolean!
+        login(user: SimpleUserInput): Boolean!
         updatePassword(password: String!): Boolean!
         makeModerator(email: String!): Boolean!
         makeAdmin(email: String!): Boolean!
